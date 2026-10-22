@@ -5,6 +5,7 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import NewTicketPage from "./pages/NewTicketPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import TicketsPage from "./pages/TicketsPage";
 import TicketSubmittedPage from "./pages/TicketSubmittedPage";
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
                 <Route path="/admin/login" element={<LoginPage />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path="/admin" element={<DashboardPage />} />
+                    <Route path="/admin/tickets" element={<TicketsPage />} />
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />
             </Route>
