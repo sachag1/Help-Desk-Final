@@ -2,6 +2,7 @@ import express, { Express, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import { ApiErrorResponse } from "../type/api";
 import { sendError } from "./http";
+import { adminRouter } from "./routes/admin";
 import { ticketsRouter } from "./routes/tickets";
 
 const DEFAULT_ORIGINS: string = "http://localhost:5173,http://localhost:3005";
@@ -13,6 +14,7 @@ export function createApp(): Express {
     app.use(cors({ origin: allowedOrigins, exposedHeaders: ["Content-Disposition"] }));
     app.use(express.json({ limit: "100kb" }));
 
+    app.use("/admin", adminRouter);
     app.use("/tickets", ticketsRouter);
 
     app.use((_req: Request, res: Response<ApiErrorResponse>): void => {

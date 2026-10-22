@@ -11,6 +11,8 @@
   "include": [
     "server",
     "db",
-    "type"
+    "type",
+    "auth",
+    "scripts"
   ]
 }

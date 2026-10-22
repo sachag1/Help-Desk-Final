@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "start": "node --env-file=.env dist/server/index.js",
     "dev": "tsc && node --env-file=.env --watch dist/server/index.js",
-    "watch": "tsc -w"
+    "watch": "tsc -w",
+    "seed:admin": "tsc && node --env-file=.env dist/scripts/seedAdmin.js"
   },
   "author": "",
   "license": "ISC",

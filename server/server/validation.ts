@@ -1,3 +1,4 @@
+import { AdminLoginInput } from "../type/admin";
 import {
     CreateTicketInput,
     TICKET_CATEGORIES,
@@ -131,4 +132,17 @@ export function parseUpdateTicketInput(body: unknown): ParseResult<UpdateTicketI
     }
 
     return errors.length > 0 ? { ok: false, errors } : { ok: true, value: update };
+}
+
+// Login data: both fields must be non-empty strings
+export function parseLoginInput(body: unknown): ParseResult<AdminLoginInput> {
+    if (!isRecord(body)) {
+        return { ok: false, errors: ["The request body must be a JSON object"] };
+    }
+    const username: string | null = readText(body.username, 1, 100);
+    const password: unknown = body.password;
+    if (username === null || typeof password !== "string" || password.length === 0 || password.length > 200) {
+        return { ok: false, errors: ["Username and password are required"] };
+    }
+    return { ok: true, value: { username, password } };
 }

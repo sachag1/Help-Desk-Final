@@ -1,10 +1,12 @@
 import { Server } from "node:http";
+import { getAuthSecret } from "../auth/config";
 import { closeDB, connectDB } from "../db/index";
 import { createApp } from "./app";
 
 const PORT: number = Number(process.env.PORT ?? 3000);
 
 async function start(): Promise<void> {
+    getAuthSecret();
     await connectDB();
 
     const server: Server = createApp().listen(PORT, () => {

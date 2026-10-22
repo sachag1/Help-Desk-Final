@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 import { createTicket, deleteTicket, getTicketById, getTickets, updateTicket } from "../../db/ticketActions";
 import { isValidObjectId } from "../../db/objectId";
+import { requireAdmin } from "../../auth/requireAdmin";
 import { ApiErrorResponse, ApiResponse, DeletedTicketResult } from "../../type/api";
 import { CreateTicketInput, PublicTicket, TicketIdParams, UpdateTicketInput } from "../../type/ticket";
 import { handleDbError, sendError } from "../http";
@@ -25,6 +26,9 @@ ticketsRouter.post(
         }
     }
 );
+
+// Everything below this line is reserved to the administrator
+ticketsRouter.use(requireAdmin);
 
 ticketsRouter.get("/", async (_req: Request, res: Response<ApiResponse<PublicTicket[]>>): Promise<void> => {
     try {
