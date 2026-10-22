@@ -4,6 +4,7 @@ import { isValidObjectId } from "../../db/objectId";
 import { requireAdmin } from "../../auth/requireAdmin";
 import { ApiErrorResponse, ApiResponse, DeletedTicketResult } from "../../type/api";
 import { CreateTicketInput, PublicTicket, TicketIdParams, UpdateTicketInput } from "../../type/ticket";
+import { ticketsToCsv } from "../csv";
 import { handleDbError, sendError } from "../http";
 import { ParseResult, parseCreateTicketInput, parseUpdateTicketInput } from "../validation";
 
@@ -36,6 +37,19 @@ ticketsRouter.get("/", async (_req: Request, res: Response<ApiResponse<PublicTic
         res.status(200).json({ success: true, data: tickets });
     } catch (error: unknown) {
         handleDbError(res, error, "Failed to load the tickets");
+    }
+});
+
+// Declared before "/:id" so that "export" is not read as an id
+ticketsRouter.get("/export/csv", async (_req: Request, res: Response<string | ApiErrorResponse>): Promise<void> => {
+    try {
+        const tickets: PublicTicket[] = await getTickets();
+        res.status(200)
+            .type("text/csv; charset=utf-8")
+            .attachment("tickets.csv")
+            .send(ticketsToCsv(tickets));
+    } catch (error: unknown) {
+        handleDbError(res, error, "Failed to export the tickets");
     }
 });
 
