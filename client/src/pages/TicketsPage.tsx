@@ -6,10 +6,11 @@ import type { TicketFilters } from "../utils/ticketFilters";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
 import TicketFiltersBar from "../components/TicketFiltersBar";
+import TicketDetailsDialog from "../components/TicketDetailsDialog";
 import TicketList from "../components/TicketList";
 
 export default function TicketsPage() {
-    const { tickets, isLoading, error, reload } = useTickets();
+    const { tickets, isLoading, error, reload, getTicket, updateTicket } = useTickets();
     const [filters, setFilters] = useState<TicketFilters>(DEFAULT_FILTERS);
 
     const visibleTickets: PublicTicket[] = useMemo(() => filterTickets(tickets, filters), [tickets, filters]);
@@ -43,7 +44,13 @@ export default function TicketsPage() {
             )}
 
             {!isLoading && error === null && (
-                <TicketList tickets={visibleTickets} isFiltered={hasActiveFilters(filters)} renderActions={() => null} />
+                <TicketList
+                    tickets={visibleTickets}
+                    isFiltered={hasActiveFilters(filters)}
+                    renderActions={(ticket: PublicTicket) => (
+                        <TicketDetailsDialog ticketId={ticket.id} onLoadTicket={getTicket} onUpdateTicket={updateTicket} />
+                    )}
+                />
             )}
         </div>
     );
