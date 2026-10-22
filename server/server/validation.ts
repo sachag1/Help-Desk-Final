@@ -94,3 +94,41 @@ export function parseCreateTicketInput(body: unknown): ParseResult<CreateTicketI
 
     return { ok: true, value: { fullName, email, phone, title, description, category, priority } };
 }
+
+const UPDATABLE_FIELDS: readonly string[] = ["status", "priority"];
+
+// An update may only contain status and/or priority, and at least one of them
+export function parseUpdateTicketInput(body: unknown): ParseResult<UpdateTicketInput> {
+    if (!isRecord(body)) {
+        return { ok: false, errors: ["The request body must be a JSON object"] };
+    }
+
+    const errors: string[] = [];
+    for (const key of Object.keys(body)) {
+        if (!UPDATABLE_FIELDS.includes(key)) {
+            errors.push(`${key} cannot be updated`);
+        }
+    }
+
+    const update: UpdateTicketInput = {};
+    if (body.status !== undefined) {
+        if (isTicketStatus(body.status)) {
+            update.status = body.status;
+        } else {
+            errors.push(`status must be one of: ${TICKET_STATUSES.join(", ")}`);
+        }
+    }
+    if (body.priority !== undefined) {
+        if (isTicketPriority(body.priority)) {
+            update.priority = body.priority;
+        } else {
+            errors.push(`priority must be one of: ${TICKET_PRIORITIES.join(", ")}`);
+        }
+    }
+
+    if (errors.length === 0 && update.status === undefined && update.priority === undefined) {
+        errors.push("Provide status and/or priority");
+    }
+
+    return errors.length > 0 ? { ok: false, errors } : { ok: true, value: update };
+}

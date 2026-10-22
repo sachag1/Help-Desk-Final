@@ -2,7 +2,7 @@ import { Collection, DeleteResult, InsertOneResult, ObjectId, WithId } from "mon
 import { getTicketsCollection } from "./index";
 import { toDatabaseError } from "./errors";
 import { isValidObjectId } from "./objectId";
-import { CreateTicketInput, PublicTicket, TicketDocument } from "../type/ticket";
+import { CreateTicketInput, PublicTicket, TicketDocument, UpdateTicketInput } from "../type/ticket";
 
 function toPublicTicket(ticket: WithId<TicketDocument>): PublicTicket {
     return {
@@ -52,6 +52,23 @@ export async function getTicketById(id: string): Promise<PublicTicket | null> {
         return document === null ? null : toPublicTicket(document);
     } catch (error: unknown) {
         throw toDatabaseError(error, "getTicketById");
+    }
+}
+
+export async function updateTicket(id: string, update: UpdateTicketInput): Promise<PublicTicket | null> {
+    if (!isValidObjectId(id)) {
+        return null;
+    }
+    try {
+        const tickets: Collection<TicketDocument> = await getTicketsCollection();
+        const updated: WithId<TicketDocument> | null = await tickets.findOneAndUpdate(
+            { _id: new ObjectId(id) },
+            { $set: { ...update, updatedAt: new Date() } },
+            { returnDocument: "after" }
+        );
+        return updated === null ? null : toPublicTicket(updated);
+    } catch (error: unknown) {
+        throw toDatabaseError(error, "updateTicket");
     }
 }
 

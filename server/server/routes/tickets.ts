@@ -1,10 +1,10 @@
 import { Request, Response, Router } from "express";
-import { createTicket, deleteTicket, getTicketById, getTickets } from "../../db/ticketActions";
+import { createTicket, deleteTicket, getTicketById, getTickets, updateTicket } from "../../db/ticketActions";
 import { isValidObjectId } from "../../db/objectId";
 import { ApiErrorResponse, ApiResponse, DeletedTicketResult } from "../../type/api";
-import { CreateTicketInput, PublicTicket, TicketIdParams } from "../../type/ticket";
+import { CreateTicketInput, PublicTicket, TicketIdParams, UpdateTicketInput } from "../../type/ticket";
 import { handleDbError, sendError } from "../http";
-import { ParseResult, parseCreateTicketInput } from "../validation";
+import { ParseResult, parseCreateTicketInput, parseUpdateTicketInput } from "../validation";
 
 export const ticketsRouter: Router = Router();
 
@@ -53,6 +53,34 @@ ticketsRouter.get("/:id", async (req: Request<TicketIdParams>, res: Response<Api
         handleDbError(res, error, "Failed to load the ticket");
     }
 });
+
+ticketsRouter.patch(
+    "/:id",
+    async (req: Request<TicketIdParams, ApiResponse<PublicTicket>, unknown>, res: Response<ApiResponse<PublicTicket>>): Promise<void> => {
+        const id: string = req.params.id;
+        if (!isValidObjectId(id)) {
+            sendError(res, 400, "Invalid ticket id");
+            return;
+        }
+
+        const parsed: ParseResult<UpdateTicketInput> = parseUpdateTicketInput(req.body);
+        if (!parsed.ok) {
+            sendError(res, 400, `Invalid update: ${parsed.errors.join("; ")}`);
+            return;
+        }
+
+        try {
+            const ticket: PublicTicket | null = await updateTicket(id, parsed.value);
+            if (ticket === null) {
+                sendError(res, 404, "Ticket not found");
+                return;
+            }
+            res.status(200).json({ success: true, data: ticket });
+        } catch (error: unknown) {
+            handleDbError(res, error, "Failed to update the ticket");
+        }
+    }
+);
 
 ticketsRouter.delete(
     "/:id",
