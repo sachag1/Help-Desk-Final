@@ -1,7 +1,7 @@
 {
-  "name": "users-server",
+  "name": "helpdesk-server",
   "version": "1.0.0",
-  "description": "Users management API: Express + TypeScript + MongoDB.",
+  "description": "Help Desk API: Express + TypeScript + MongoDB (tickets and admin authentication).",
   "main": "dist/server/index.js",
   "scripts": {
     "build": "tsc",

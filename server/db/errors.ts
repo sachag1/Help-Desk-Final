@@ -1,4 +1,4 @@
-export type DuplicateField = "email" | "userName";
+import { MongoNetworkError, MongoServerSelectionError } from "mongodb";
 
 export class DatabaseError extends Error {
     readonly unavailable: boolean;
@@ -10,12 +10,9 @@ export class DatabaseError extends Error {
     }
 }
 
-export class DuplicateUserError extends Error {
-    readonly field: DuplicateField;
-
-    constructor(field: DuplicateField) {
-        super(`A user with this ${field} already exists`);
-        this.name = "DuplicateUserError";
-        this.field = field;
-    }
+// Wraps any driver failure so the server layer never sees raw MongoDB errors
+export function toDatabaseError(error: unknown, action: string): DatabaseError {
+    const reason: string = error instanceof Error ? error.message : String(error);
+    const unavailable: boolean = error instanceof MongoServerSelectionError || error instanceof MongoNetworkError;
+    return new DatabaseError(`Database action "${action}" failed: ${reason}`, unavailable);
 }

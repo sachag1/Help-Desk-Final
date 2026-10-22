@@ -1,11 +1,11 @@
 import { Collection, Db, MongoClient } from "mongodb";
-import { UserDocument } from "../type/user";
+import { TicketDocument } from "../type/ticket";
 
-const DEFAULT_DB_NAME: string = "users_project";
-const USERS_COLLECTION: string = "users";
+const DEFAULT_DB_NAME: string = "helpdesk";
+const TICKETS_COLLECTION: string = "tickets";
 
 let client: MongoClient | null = null;
-let usersCollection: Collection<UserDocument> | null = null;
+let ticketsCollection: Collection<TicketDocument> | null = null;
 
 function readUri(): string {
     const uri: string | undefined = process.env.MONGODB_URI;
@@ -16,27 +16,29 @@ function readUri(): string {
 }
 
 // One shared connection for every database action
-export async function connectDB(): Promise<Collection<UserDocument>> {
-    if (usersCollection !== null) {
-        return usersCollection;
+export async function connectDB(): Promise<void> {
+    if (client !== null) {
+        return;
     }
 
     const newClient: MongoClient = new MongoClient(readUri(), { serverSelectionTimeoutMS: 5000 });
     await newClient.connect();
 
     const db: Db = newClient.db(process.env.MONGODB_DB ?? DEFAULT_DB_NAME);
-    const collection: Collection<UserDocument> = db.collection<UserDocument>(USERS_COLLECTION);
-    await collection.createIndex({ email: 1 }, { unique: true });
-    await collection.createIndex({ userName: 1 }, { unique: true });
+    const tickets: Collection<TicketDocument> = db.collection<TicketDocument>(TICKETS_COLLECTION);
+    await tickets.createIndex({ createdAt: -1 });
 
     client = newClient;
-    usersCollection = collection;
+    ticketsCollection = tickets;
     console.log("Connected to MongoDB");
-    return collection;
 }
 
-export async function getUsersCollection(): Promise<Collection<UserDocument>> {
-    return connectDB();
+export async function getTicketsCollection(): Promise<Collection<TicketDocument>> {
+    await connectDB();
+    if (ticketsCollection === null) {
+        throw new Error("The tickets collection is not available");
+    }
+    return ticketsCollection;
 }
 
 export async function closeDB(): Promise<void> {
@@ -44,5 +46,5 @@ export async function closeDB(): Promise<void> {
         await client.close();
     }
     client = null;
-    usersCollection = null;
+    ticketsCollection = null;
 }
