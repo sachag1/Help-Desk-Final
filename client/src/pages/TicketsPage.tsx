@@ -5,12 +5,13 @@ import { DEFAULT_FILTERS, filterTickets, hasActiveFilters } from "../utils/ticke
 import type { TicketFilters } from "../utils/ticketFilters";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
+import DeleteTicketDialog from "../components/DeleteTicketDialog";
 import TicketFiltersBar from "../components/TicketFiltersBar";
 import TicketDetailsDialog from "../components/TicketDetailsDialog";
 import TicketList from "../components/TicketList";
 
 export default function TicketsPage() {
-    const { tickets, isLoading, error, reload, getTicket, updateTicket } = useTickets();
+    const { tickets, isLoading, error, reload, getTicket, updateTicket, deleteTicket } = useTickets();
     const [filters, setFilters] = useState<TicketFilters>(DEFAULT_FILTERS);
 
     const visibleTickets: PublicTicket[] = useMemo(() => filterTickets(tickets, filters), [tickets, filters]);
@@ -48,7 +49,10 @@ export default function TicketsPage() {
                     tickets={visibleTickets}
                     isFiltered={hasActiveFilters(filters)}
                     renderActions={(ticket: PublicTicket) => (
-                        <TicketDetailsDialog ticketId={ticket.id} onLoadTicket={getTicket} onUpdateTicket={updateTicket} />
+                        <>
+                            <TicketDetailsDialog ticketId={ticket.id} onLoadTicket={getTicket} onUpdateTicket={updateTicket} />
+                            <DeleteTicketDialog ticket={ticket} onDeleteTicket={deleteTicket} />
+                        </>
                     )}
                 />
             )}
