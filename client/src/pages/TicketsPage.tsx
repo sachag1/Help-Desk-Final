@@ -5,6 +5,7 @@ import { DEFAULT_FILTERS, filterTickets, hasActiveFilters } from "../utils/ticke
 import type { TicketFilters } from "../utils/ticketFilters";
 import ErrorMessage from "../components/ErrorMessage";
 import Loading from "../components/Loading";
+import ExportCsvButton from "../components/ExportCsvButton";
 import DeleteTicketDialog from "../components/DeleteTicketDialog";
 import TicketFiltersBar from "../components/TicketFiltersBar";
 import TicketDetailsDialog from "../components/TicketDetailsDialog";
@@ -25,6 +26,7 @@ export default function TicketsPage() {
                         {isLoading || error !== null ? "Support tickets" : `${visibleTickets.length} of ${tickets.length} tickets shown`}
                     </p>
                 </div>
+                <ExportCsvButton />
             </header>
 
             <TicketFiltersBar filters={filters} onChange={setFilters} />
