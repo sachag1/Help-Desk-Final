@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import ProtectedRoute from "./components/ProtectedRoute";
+import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import NewTicketPage from "./pages/NewTicketPage";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -14,7 +15,7 @@ export default function App() {
                 <Route path="/ticket-submitted" element={<TicketSubmittedPage />} />
                 <Route path="/admin/login" element={<LoginPage />} />
                 <Route element={<ProtectedRoute />}>
-                    <Route path="/admin" element={<p className="text-slate-700">Administrator area</p>} />
+                    <Route path="/admin" element={<DashboardPage />} />
                 </Route>
                 <Route path="*" element={<NotFoundPage />} />
             </Route>
