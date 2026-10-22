@@ -1,4 +1,5 @@
 import type { ApiResponse, DeletedTicketResult } from "./api";
+import type { AuthSession } from "./auth";
 import { TICKET_CATEGORIES, TICKET_PRIORITIES, TICKET_STATUSES } from "./ticket";
 import type { PublicTicket, TicketCategory, TicketPriority, TicketStatus } from "./ticket";
 
@@ -43,6 +44,10 @@ export function isPublicTicketArray(value: unknown): value is PublicTicket[] {
 
 export function isDeletedTicketResult(value: unknown): value is DeletedTicketResult {
     return isRecord(value) && typeof value.id === "string";
+}
+
+export function isAuthSession(value: unknown): value is AuthSession {
+    return isRecord(value) && typeof value.token === "string" && typeof value.username === "string" && typeof value.expiresAt === "string";
 }
 
 // Checks the envelope of a server answer; the payload itself is checked with `isData`

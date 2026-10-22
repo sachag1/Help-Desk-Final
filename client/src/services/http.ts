@@ -1,5 +1,6 @@
 import type { ApiResponse } from "../types/api";
 import { isApiResponse } from "../types/guards";
+import { loadSession } from "./authStorage";
 
 const API_URL: string = import.meta.env.VITE_API_URL;
 
@@ -8,6 +9,8 @@ export type HttpMethod = "GET" | "POST" | "PATCH" | "DELETE";
 export interface RequestOptions {
     method?: HttpMethod;
     body?: unknown;
+    // Protected endpoints send the administrator token; public ones (ticket creation, login) do not need it
+    authenticated?: boolean;
 }
 
 // Error thrown by the API layer; `status` is 0 when the server could not be reached
@@ -21,10 +24,25 @@ export class ApiRequestError extends Error {
     }
 }
 
+const SESSION_EXPIRED_MESSAGE = "Your session has expired. Please log in again.";
+
+let unauthorizedHandler: (() => void) | null = null;
+
+// The authentication provider registers what must happen when the server answers 401 to a protected call
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+    unauthorizedHandler = handler;
+}
+
 function buildInit(options: RequestOptions): RequestInit {
     const headers: Record<string, string> = {};
     if (options.body !== undefined) {
         headers["Content-Type"] = "application/json";
+    }
+    if (options.authenticated ?? true) {
+        const token: string | undefined = loadSession()?.token;
+        if (token !== undefined) {
+            headers.Authorization = `Bearer ${token}`;
+        }
     }
     return {
         method: options.method ?? "GET",
@@ -33,12 +51,18 @@ function buildInit(options: RequestOptions): RequestInit {
     };
 }
 
-async function send(path: string, options: RequestOptions): Promise<Response> {
+export async function send(path: string, options: RequestOptions): Promise<Response> {
+    let response: Response;
     try {
-        return await fetch(`${API_URL}${path}`, buildInit(options));
+        response = await fetch(`${API_URL}${path}`, buildInit(options));
     } catch {
         throw new ApiRequestError("Cannot reach the server", 0);
     }
+    if (response.status === 401 && (options.authenticated ?? true) && unauthorizedHandler !== null) {
+        unauthorizedHandler();
+        throw new ApiRequestError(SESSION_EXPIRED_MESSAGE, 401);
+    }
+    return response;
 }
 
 // The one place that calls fetch for JSON endpoints. The answer is `unknown` until it is checked.
