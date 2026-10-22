@@ -1,30 +1,51 @@
-import type { ApiResponse } from "./api";
-import type { PublicUser } from "./user";
+import type { ApiResponse, DeletedTicketResult } from "./api";
+import { TICKET_CATEGORIES, TICKET_PRIORITIES, TICKET_STATUSES } from "./ticket";
+import type { PublicTicket, TicketCategory, TicketPriority, TicketStatus } from "./ticket";
 
-function isRecord(value: unknown): value is Record<string, unknown> {
+// Everything that comes from the server or from storage is `unknown` until one of these guards checks it
+
+export function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-export function isPublicUser(value: unknown): value is PublicUser {
+export function isTicketCategory(value: unknown): value is TicketCategory {
+    return TICKET_CATEGORIES.some((category: TicketCategory) => category === value);
+}
+
+export function isTicketPriority(value: unknown): value is TicketPriority {
+    return TICKET_PRIORITIES.some((priority: TicketPriority) => priority === value);
+}
+
+export function isTicketStatus(value: unknown): value is TicketStatus {
+    return TICKET_STATUSES.some((status: TicketStatus) => status === value);
+}
+
+export function isPublicTicket(value: unknown): value is PublicTicket {
     return (
         isRecord(value) &&
         typeof value.id === "string" &&
-        typeof value.name === "string" &&
-        typeof value.lastName === "string" &&
+        typeof value.fullName === "string" &&
         typeof value.email === "string" &&
-        typeof value.userName === "string"
+        typeof value.phone === "string" &&
+        typeof value.title === "string" &&
+        typeof value.description === "string" &&
+        isTicketCategory(value.category) &&
+        isTicketPriority(value.priority) &&
+        isTicketStatus(value.status) &&
+        typeof value.createdAt === "string" &&
+        typeof value.updatedAt === "string"
     );
 }
 
-export function isPublicUserArray(value: unknown): value is PublicUser[] {
-    return Array.isArray(value) && value.every(isPublicUser);
+export function isPublicTicketArray(value: unknown): value is PublicTicket[] {
+    return Array.isArray(value) && value.every(isPublicTicket);
 }
 
-export function isDeletedId(value: unknown): value is { id: string } {
+export function isDeletedTicketResult(value: unknown): value is DeletedTicketResult {
     return isRecord(value) && typeof value.id === "string";
 }
 
-// Checks the envelope of a server answer; the payload is validated with `isData`
+// Checks the envelope of a server answer; the payload itself is checked with `isData`
 export function isApiResponse<T>(value: unknown, isData: (data: unknown) => data is T): value is ApiResponse<T> {
     if (!isRecord(value)) {
         return false;
